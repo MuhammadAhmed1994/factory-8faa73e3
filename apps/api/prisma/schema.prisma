@@ -1,0 +1,95 @@
+// Prisma schema for the Team Kudos Board API.
+//
+// Single team (OOS-3): no Team entity. Accounts are seeded at deploy (ADR-2 /
+// Q-5), so there is no registration or invite entity either.
+//
+// Deliberate non-constraints:
+//   * `Kudos.message` length (1-280 chars, C-2 / AC-8 / AC-9) is validated in
+//     the kudos *service*/DTO layer, never as a DB constraint.
+//   * Reaction counts (AC-12/AC-14/AC-16) are computed with GROUP BY at read
+//     time; no aggregate column is ever stored.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Seeded role; lead emails are marked at seed time (ADR-2 / Q-2).
+enum MemberRole {
+  MEMBER
+  LEAD
+}
+
+/// The curated reaction emoji set 👍 ❤️ 🎉 🙌 (ADR-4 / Q-3).
+enum ReactionEmoji {
+  THUMBS_UP
+  HEART
+  TADA
+  RAISED_HANDS
+}
+
+model Member {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         MemberRole @default(MEMBER)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  kudosAuthored Kudos[]    @relation("authors")
+  kudosReceived Kudos[]    @relation("receives")
+  reactions     Reaction[]
+  sessions      Session[]
+
+  @@map("members")
+}
+
+model Kudos {
+  id          String    @id @default(cuid())
+  authorId    String
+  recipientId String
+  message     String
+  hiddenAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author    Member     @relation("authors", fields: [authorId], references: [id], onDelete: Cascade)
+  recipient Member     @relation("receives", fields: [recipientId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
+
+  @@map("kudos")
+}
+
+model Reaction {
+  id        String        @id @default(cuid())
+  kudosId   String
+  memberId  String
+  emoji     ReactionEmoji
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  kudos  Kudos  @relation(fields: [kudosId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // Exactly one reaction per member per kudos (C-4 / AC-15): the upsert-replace
+  // reaction endpoint relies on this uniqueness for its "replace, never
+  // duplicate" semantics.
+  @@unique([kudosId, memberId])
+  @@map("reactions")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  memberId  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
