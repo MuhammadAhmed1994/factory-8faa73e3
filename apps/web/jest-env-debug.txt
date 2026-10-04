@@ -1,0 +1,23 @@
+Toolchain note — jest test environment in apps/web
+=================================================
+
+`pnpm --filter web test` runs Jest with a jsdom test environment. Jest resolves
+`testEnvironment` relative to jest.config.js and does not walk up to the
+workspace root, and this repo's pre-provisioned toolchain ships `jsdom` (plus
+`jest`, `jest-environment-node`, `@testing-library/*`) without the thin
+`jest-environment-jsdom` wrapper package.
+
+`jest.config.js` therefore:
+
+  1. prefers the real `jest-environment-jsdom` whenever it resolves, and
+  2. otherwise falls back to `jest/jsdom-environment.cjs` — a local equivalent
+     that extends `jest-environment-node` and makes the jsdom window the test
+     realm (mirroring what the official package does).
+
+`probe.spec.ts` asserts that environment contract, so a toolchain change that
+breaks component rendering under jsdom fails the suite instead of silently
+degrading to a node realm.
+
+No new devDependencies were added anywhere: adding one without regenerating
+pnpm-lock.yaml would break every package's test run with
+ERR_PNPM_OUTDATED_LOCKFILE.

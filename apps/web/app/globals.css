@@ -1,0 +1,216 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Team Kudos Board — Warm Editorial Minimal design tokens.
+ *
+ * Every colour, radius and font below is the single source of truth for the
+ * palette. Components must consume these variables (directly or via the
+ * Tailwind theme mapping in tailwind.config.ts) and never hardcode hex values,
+ * so a palette change stays a one-file edit.
+ */
+:root {
+  /* Canvas + text */
+  --background: #FBF8F3;
+  --foreground: #2A2622;
+
+  /* Surfaces */
+  --card: #FFFFFF;
+  --card-foreground: #2A2622;
+
+  /* The single celebration accent (primary actions, own reaction, focus) */
+  --primary: #B45309;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary controls: pagination prev/next, sign out, lead "Hide" */
+  --secondary: #57534E;
+  --secondary-foreground: #FFFFFF;
+
+  /* Amber — new-kudos highlight + LiveIndicator dot only, never text */
+  --accent: #E8A33D;
+  --accent-soft: #FBEED9;
+
+  /* Field fill, skeleton base, helper text */
+  --muted: #F1EBE1;
+  --muted-foreground: #6E655A;
+
+  --border: #E4DCCC;
+
+  /* Semantic */
+  --destructive: #B3261E;
+  --destructive-foreground: #FFFFFF;
+  --success: #15803D;
+  --info: #1D4ED8;
+
+  /* Focus ring: 2px amber at 45% alpha, 2px offset — always visible */
+  --ring: #B45309;
+  --ring-alpha: 0.45;
+
+  /* Radii (6 / 10 / 14 / 999px) */
+  --radius-sm: 6px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+
+  /* Elevation — soft warm espresso shadows */
+  --shadow-card: 0 1px 2px rgba(42, 38, 34, 0.06), 0 1px 3px rgba(42, 38, 34, 0.04);
+  --shadow-card-hover: 0 2px 8px rgba(42, 38, 34, 0.09);
+  --shadow-popover: 0 8px 24px rgba(42, 38, 34, 0.12);
+
+  /* Motion — subtle tier */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --motion-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Typography — Plus Jakarta Sans headings, Inter body */
+  --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 22px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    color: var(--foreground);
+  }
+
+  /* Focus-visible ring everywhere — never removed without replacement. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--accent-soft);
+    color: var(--foreground);
+  }
+}
+
+/* Type-scale utilities (display 28/34 800 → overline 11/14 600). */
+@layer utilities {
+  .type-display {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .type-heading-m {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+
+  .type-heading-s {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 600;
+  }
+
+  .type-body-m {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+
+  .type-body-s {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+
+  .type-caption {
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+  }
+
+  .type-overline {
+    font-family: var(--font-body);
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
+/*
+ * Arrival highlight: the amber wash that fades off a newly arrived kudos card
+ * over ~1.2s. Scoped to the data-arriving attribute toggled by JS so no other
+ * surface can pick it up accidentally.
+ */
+.kudos-card[data-arriving="true"] {
+  animation: kudos-arrival 1200ms var(--motion-ease-enter) 0ms 1 both;
+}
+
+@keyframes kudos-arrival {
+  0% {
+    background-color: var(--accent-soft);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  100% {
+    background-color: var(--card);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/*
+ * Reduced motion: every animation collapses to a single 200ms opacity fade.
+ * Polling is not motion and continues unaffected.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 200ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 200ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .kudos-card[data-arriving="true"] {
+    animation-name: kudos-arrival-reduced;
+  }
+}
+
+@keyframes kudos-arrival-reduced {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
