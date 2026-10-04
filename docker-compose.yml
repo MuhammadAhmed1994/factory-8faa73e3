@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kudos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kudos
+      POSTGRES_PASSWORD: kudos
+      POSTGRES_DB: kudos
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - "5432:5432"
+    volumes:
+      - kudos-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kudos -d kudos"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  kudos-postgres-data:
+    name: kudos-postgres-data

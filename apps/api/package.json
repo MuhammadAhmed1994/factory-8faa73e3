@@ -1,0 +1,51 @@
+{
+  "name": "api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Team Kudos Board NestJS API",
+  "scripts": {
+    "build": "nest build",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:prod": "node dist/main.js",
+    "test": "jest --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "db:up": "pnpm --dir ../.. run db:up"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.4.4",
+    "@nestjs/config": "^3.2.3",
+    "@nestjs/core": "^10.4.4",
+    "@nestjs/platform-express": "^10.4.4",
+    "@prisma/client": "^5.20.0",
+    "argon2": "^0.41.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "cookie-parser": "^1.4.7",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.5",
+    "@nestjs/schematics": "^10.1.4",
+    "@nestjs/testing": "^10.4.4",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.7.4",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prisma": "^5.20.0",
+    "supertest": "^7.0.1",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  }
+}
