@@ -1,0 +1,3 @@
+packages:
+  # NestJS API (apps/api). The Next.js App Router web app lands in apps/web later.
+  - "apps/*"

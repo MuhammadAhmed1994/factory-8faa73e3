@@ -1,0 +1,16 @@
+{
+  "name": "team-kudos-board",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Team Kudos Board monorepo: NestJS API (apps/api), Next.js App Router web app and PostgreSQL.",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  }
+}

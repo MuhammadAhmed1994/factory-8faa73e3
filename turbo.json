@@ -1,0 +1,29 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["pnpm-workspace.yaml", "tsconfig.base.json", "docker-compose.yml"],
+  "globalEnv": ["NODE_ENV", "DATABASE_URL", "PORT", "SESSION_COOKIE_NAME", "SESSION_TTL_SECONDS"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*", "tsconfig.json", "package.json"],
+      "outputs": ["dist/**"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*",
+        "test/**/*",
+        "jest.config.ts",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": [],
+      "env": ["NODE_ENV", "DATABASE_URL", "PORT", "SESSION_COOKIE_NAME", "SESSION_TTL_SECONDS"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*", "test/**/*", "tsconfig.json", "package.json"],
+      "outputs": []
+    }
+  }
+}
