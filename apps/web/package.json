@@ -1,0 +1,13 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Team Kudos Board web app: Next.js App Router + TypeScript strict + Tailwind design tokens.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "jest --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  }
+}
