@@ -1,0 +1,109 @@
+// Prisma data model for the Team Kudos Board API (single team, OOS-3).
+//
+// Connection details come from the DATABASE_URL environment variable, whose
+// default is owned by `src/app.config.ts` (T-1):
+//   postgresql://kudos:kudos@localhost:5432/kudos?schema=public
+//
+// Deliberate non-constraints (kept in the service layer on purpose):
+//   * `Kudos.message` length (1-280 chars) is validated by the kudos DTO/service
+//     (C-2, AC-8, AC-9) - there is no DB length check so the API can answer 400
+//     with a proper validation message instead of a 500 from a DB error.
+//   * Reaction counts are never stored; they are computed with GROUP BY at read
+//     time (AC-12/AC-14/AC-16).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Seeded role (ADR-2): lead emails are marked at seed time; default is MEMBER.
+enum MemberRole {
+  MEMBER
+  LEAD
+}
+
+/// Curated reaction set (ADR-4 / Q-3): THUMBS_UP 👍, HEART ❤️, TADA 🎉, RAISED_HANDS 🙌.
+enum ReactionEmoji {
+  THUMBS_UP
+  HEART
+  TADA
+  RAISED_HANDS
+}
+
+/// A signed-in colleague. Accounts are seeded at deploy (Q-5) - no self-signup.
+model Member {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  /// Argon2id (or bcrypt cost >= 12) hash; plaintext is never stored (ADR-2).
+  passwordHash String
+  role         MemberRole @default(MEMBER)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  kudosAuthored Kudos[]    @relation("authors")
+  kudosReceived Kudos[]    @relation("receives")
+  reactions     Reaction[]
+  sessions      Session[]
+
+  @@index([role])
+}
+
+/// One short kudos card on the board.
+model Kudos {
+  id          String    @id @default(cuid())
+  /// Posting member.
+  authorId    String
+  /// Thanked member.
+  recipientId String
+  /// 1-280 characters, validated in the service layer (not a DB constraint).
+  message     String
+  /// Soft-hide flag (ADR-5 / Q-4): null = visible; retained row keeps reactions.
+  hiddenAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author    Member     @relation("authors", fields: [authorId], references: [id], onDelete: Cascade)
+  recipient Member     @relation("receives", fields: [recipientId], references: [id], onDelete: Cascade)
+  reactions Reaction[]
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([authorId])
+  @@index([recipientId])
+}
+
+/// Exactly one reaction per member per kudos (C-4); a repeat submit replaces the
+/// row (AC-15) via upsert on @@unique([kudosId, memberId]).
+model Reaction {
+  id        String        @id @default(cuid())
+  kudosId   String
+  memberId  String
+  emoji     ReactionEmoji
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  kudos  Kudos  @relation(fields: [kudosId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([kudosId, memberId])
+  @@index([kudosId])
+}
+
+/// Server-side session (ADR-1): `id` is the opaque value carried by the
+/// httpOnly cookie. The auth task supplies a random token; `cuid()` is only a
+/// fallback so the row always has a key.
+model Session {
+  id        String   @id @default(cuid())
+  memberId  String
+  /// Expired rows fail authentication with 401.
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
